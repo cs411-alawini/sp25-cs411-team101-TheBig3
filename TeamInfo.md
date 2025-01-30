@@ -1,4 +1,4 @@
-# team101-TheBig3
+# Team101-TheBig3
 
 ## Basic Information
 
