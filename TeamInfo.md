@@ -12,8 +12,8 @@
 | Member1     |   rickyl3@illinois.edu |
 | Member2     |     Andrew Mao         |
 | Member2     |  andrew87@illinois.edu |
-| Member3     |                        |
-| Member3     |                        |
+| Member3     |     Mayank Hirani      |
+| Member3     |  mhirani2@illinois.edu |
 
 ## Project Information
 
