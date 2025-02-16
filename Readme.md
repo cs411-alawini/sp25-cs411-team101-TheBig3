@@ -1,6 +1,6 @@
 # Team101-TheBig3
 
-Odyssey
+### Odyssey 
 
 Project Summary:
 This platform is a global vacation review platform where users can log their travel experiences with photos and reviews of the places they visit. It will feature an interactive map GUI that dynamically displays important information about a city as well as user reviews, allowing users to explore and read experiences from other users. Users can also contribute by adding their own entries for locations that they visit.
