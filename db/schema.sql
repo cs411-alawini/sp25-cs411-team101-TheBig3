@@ -43,6 +43,7 @@ CREATE TABLE Reviews(
     ReviewID INT,
     Username VARCHAR(50) NOT NULL,
     ReviewText VARCHAR(2000),
+    CreationTime DATETIME,
 
     PRIMARY KEY (ReviewID),
 
