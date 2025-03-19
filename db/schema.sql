@@ -20,6 +20,7 @@ CREATE TABLE VacationSpots(
     --we are assuming that no two vacation spot names are the same
     VacationSpotName VARCHAR(50),
     CityId INT NOT NULL,
+    LikeCount INT,
 
     PRIMARY KEY (VacationSpotName),
 
@@ -45,6 +46,9 @@ CREATE TABLE Reviews(
     ReviewText VARCHAR(2000),
     CreatedAt DATETIME,
     UpdatedAt DATETIME,
+
+    --for simplified purposes for each review, we will only count likes, and not who liked it 
+    LikeCount INT,
 
     PRIMARY KEY (ReviewID),
 
