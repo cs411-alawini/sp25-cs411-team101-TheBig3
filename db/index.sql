@@ -1,0 +1,1 @@
+-- Index creation to optimize queries
