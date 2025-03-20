@@ -44,6 +44,9 @@ CREATE TABLE Reviews(
     ReviewID INT,
     Username VARCHAR(50) NOT NULL,
     ReviewText VARCHAR(2000),
+
+    --1 to 5 stars
+    ReviewRating INT,
     CreatedAt DATETIME,
     UpdatedAt DATETIME,
 
