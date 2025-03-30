@@ -1,4 +1,6 @@
---DDL commands to initialize our relational schema
+CREATE DATABASE IF NOT EXISTS `odyssey-db-sp25`;
+USE `odyssey-db-sp25`;
+
 
 CREATE TABLE Cities(
     CityId INT,
@@ -12,19 +14,15 @@ CREATE TABLE Cities(
     avgTmp DECIMAL(3, 2),
     avgMealPrice DECIMAL(3, 2),
     avgTicketPrice DECIMAL(5, 2),
-    PRIMARY KEY (CityId),
-
+    PRIMARY KEY (CityId)
     );
 
 CREATE TABLE VacationSpots(
-    --we are assuming that no two vacation spot names are the same
     VacationSpotName VARCHAR(50),
     CityId INT NOT NULL,
     LikeCount INT,
-
     PRIMARY KEY (VacationSpotName),
-
-    FOREIGN KEY (CityId) REFERENCES Cities(CityId) ON DELETE SET NULL,
+    FOREIGN KEY (CityId) REFERENCES Cities(CityId) ON DELETE CASCADE
 );
 
 CREATE TABLE UserAccounts(
@@ -36,7 +34,7 @@ CREATE TABLE UserAccounts(
     Country VARCHAR(50),
     Age INT,
 
-    PRIMARY KEY (Username),
+    PRIMARY KEY (Username)
 );
 
 
@@ -44,19 +42,14 @@ CREATE TABLE Reviews(
     ReviewID INT,
     Username VARCHAR(50) NOT NULL,
     ReviewText VARCHAR(2000),
-
-    --1 to 5 stars
     ReviewRating INT,
     CreatedAt DATETIME,
     UpdatedAt DATETIME,
 
-    --for simplified purposes for each review, we will only count likes, and not who liked it 
     LikeCount INT,
 
     PRIMARY KEY (ReviewID),
-
-    --reviews are dependent on username, if user deleted we delete the review
-    FOREIGN KEY (Username) REFERENCES UserAccounts(Username) ON DELETE CASCADE,
+    FOREIGN KEY (Username) REFERENCES UserAccounts(Username) ON DELETE CASCADE
 
 );
 
@@ -66,23 +59,19 @@ CREATE TABLE Images(
 
     PRIMARY KEY (ImageURL),
 
-    --images are dependent on reviews 
-    FOREIGN KEY (ReviewID) REFERENCES Reviews(ReviewID) ON DELETE CASCADE,
+    FOREIGN KEY (ReviewID) REFERENCES Reviews(ReviewID) ON DELETE CASCADE
 
 );
 
 CREATE TABLE Follows(
-    --person that is following
-    followerUsername INT,
-
-    --person being followed
-    followeeUsername INT,
+    followerUsername VARCHAR(50),
+    followeeUsername VARCHAR(50),
 
     PRIMARY KEY (followerUsername, followeeUsername),
     
-    --if either user is deleted, we get rid of this follow
+
     FOREIGN KEY (followerUsername) REFERENCES UserAccounts(Username) ON DELETE CASCADE,
-    FOREIGN KEY (followeeUsername) REFERENCES UserAccounts(Username) ON DELETE CASCADE,
+    FOREIGN KEY (followeeUsername) REFERENCES UserAccounts(Username) ON DELETE CASCADE
 );
 
 CREATE TABLE FavoriteSpots(
@@ -91,7 +80,7 @@ CREATE TABLE FavoriteSpots(
 
     PRIMARY KEY(Username, VacationSpotName),
     FOREIGN KEY (Username) REFERENCES UserAccounts(Username) ON DELETE CASCADE,
-    FOREIGN KEY (VacationSpotName) REFERENCES VacationSpots(VacationSpotName) ON DELETE CASCADE,
+    FOREIGN KEY (VacationSpotName) REFERENCES VacationSpots(VacationSpotName) ON DELETE CASCADE
 );
 
 CREATE TABLE VacationSpotReviews(
@@ -99,8 +88,8 @@ CREATE TABLE VacationSpotReviews(
     VacationSpotName VARCHAR(50),
 
     PRIMARY KEY (ReviewId, VacationSpotName),
-    FOREIGN KEY (ReviewId) REFERENCES Reviews(reviewId) ON DELETE CASCADE,
-    FOREIGN KEY (VacationSpotName) REFERENCES VacationSpots(VacationSpotName) ON DELETE CASCADE,
+    FOREIGN KEY (ReviewId) REFERENCES Reviews(ReviewId) ON DELETE CASCADE,
+    FOREIGN KEY (VacationSpotName) REFERENCES VacationSpots(VacationSpotName) ON DELETE CASCADE
 );
 
 
