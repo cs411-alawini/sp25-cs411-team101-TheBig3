@@ -1,7 +1,29 @@
 -- Our 4 advanced queries 
 
 -- 1. User Following Feed Retrieval 
--- Getting most recent reviews (within 30 days) of all reviews from accounts that a user follows
+-- Get reviews within the last 30 days from users the current user follows and the top 10 users with the most followers. 
+
+SELECT ReviewID, Username, ReviewText, ReviewRating, CreatedAt, LikeCount
+FROM (
+    SELECT r.ReviewID, r.Username, r.ReviewText, r.ReviewRating, r.CreatedAt, r.LikeCount
+    FROM Reviews r
+        JOIN Follows f ON r.UserName = f.followeeUsername
+    WHERE f.followerUsername = 'USERNAME_I_WANT'
+
+    UNION
+
+    SELECT r.ReviewID, r.Username, r.ReviewText, r.ReviewRating, r.CreatedAt, r.LikeCount
+    FROM Reviews r
+    WHERE r.UserName IN (
+        SELECT f.followeeUsername
+        FROM Follows f 
+        GROUP BY f.followeeUsername
+        ORDER BY COUNT(DISTINCT f.followerUsername) DESC
+        LIMIT 10 
+    ) AS TopUsers
+) AS ReviewFeed
+WHERE CreatedAt >= DATE_ADD(NOW(), INTERVAL -14 DAY)
+ORDER BY CreatedAt DESC; 
 
 -- 2. Vacation Spot Review Page 
 -- When defaultly viewing vacation spot reviews, finds 3 most relevant reviews for a given vacation spot (including images) based on popularity (liked or most recent) 
