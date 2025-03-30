@@ -14,8 +14,9 @@ CREATE TABLE Cities(
     avgTmp DECIMAL(3, 2),
     avgMealPrice DECIMAL(3, 2),
     avgTicketPrice DECIMAL(5, 2),
-    PRIMARY KEY (CityId)
-    );
+
+    PRIMARY KEY (CityId),
+);  
 
 CREATE TABLE VacationSpots(
     VacationSpotName VARCHAR(50),
@@ -37,20 +38,19 @@ CREATE TABLE UserAccounts(
     PRIMARY KEY (Username)
 );
 
-
 CREATE TABLE Reviews(
     ReviewID INT,
     Username VARCHAR(50) NOT NULL,
     ReviewText VARCHAR(2000),
-    ReviewRating INT,
+    ReviewRating INT,   --1 to 5 stars
     CreatedAt DATETIME,
     UpdatedAt DATETIME,
-
-    LikeCount INT,
+    LikeCount INT,      --for simplified purposes for each review, we will only count likes, and not who liked it 
 
     PRIMARY KEY (ReviewID),
-    FOREIGN KEY (Username) REFERENCES UserAccounts(Username) ON DELETE CASCADE
 
+    --reviews are dependent on username, if user deleted we delete the review
+    FOREIGN KEY (Username) REFERENCES UserAccounts(Username) ON DELETE CASCADE,
 );
 
 CREATE TABLE Images(
@@ -59,13 +59,13 @@ CREATE TABLE Images(
 
     PRIMARY KEY (ImageURL),
 
-    FOREIGN KEY (ReviewID) REFERENCES Reviews(ReviewID) ON DELETE CASCADE
-
+    --images are dependent on reviews 
+    FOREIGN KEY (ReviewID) REFERENCES Reviews(ReviewID) ON DELETE CASCADE,
 );
 
 CREATE TABLE Follows(
-    followerUsername VARCHAR(50),
-    followeeUsername VARCHAR(50),
+    followerUsername INT,   --person that is following
+    followeeUsername INT,   --person being followed
 
     PRIMARY KEY (followerUsername, followeeUsername),
     
