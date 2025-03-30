@@ -12,7 +12,7 @@ CREATE TABLE Cities(
     avgTmp DECIMAL(3, 2),
     avgMealPrice DECIMAL(3, 2),
     avgTicketPrice DECIMAL(5, 2),
-    
+
     PRIMARY KEY (CityId),
 );  
 
@@ -38,7 +38,6 @@ CREATE TABLE UserAccounts(
 
     PRIMARY KEY (Username),
 );
-
 
 CREATE TABLE Reviews(
     ReviewID INT,
