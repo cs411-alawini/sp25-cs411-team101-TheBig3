@@ -24,6 +24,29 @@ FROM (
 ) AS ReviewFeed
 WHERE CreatedAt >= DATE_ADD(NOW(), INTERVAL -14 DAY)
 ORDER BY CreatedAt DESC; 
+-- Get reviews within the last 14 days from users the current user follows and the top 10 users with the most followers. 
+
+SELECT ReviewID, Username, ReviewText, ReviewRating, CreatedAt, LikeCount
+FROM (
+    SELECT r.ReviewID, r.Username, r.ReviewText, r.ReviewRating, r.CreatedAt, r.LikeCount
+    FROM Reviews r
+        JOIN Follows f ON r.UserName = f.followeeUsername
+    WHERE f.followerUsername = 'USERNAME_I_WANT'
+
+    UNION
+
+    SELECT r.ReviewID, r.Username, r.ReviewText, r.ReviewRating, r.CreatedAt, r.LikeCount
+    FROM Reviews r
+    WHERE r.UserName IN (
+        SELECT f.followeeUsername
+        FROM Follows f 
+        GROUP BY f.followeeUsername
+        ORDER BY COUNT(DISTINCT f.followerUsername) DESC
+        LIMIT 10 
+    ) AS TopUsers
+) AS ReviewFeed
+WHERE CreatedAt >= DATE_ADD(NOW(), INTERVAL -14 DAY)
+ORDER BY CreatedAt DESC; 
 
 -- 2. Vacation Spot Review Page 
 -- When defaultly viewing vacation spot reviews, selects top 3 reviews for a given vacation spot that have a like count greater than or equal to the average like count of all reviews for that vacation spot.
