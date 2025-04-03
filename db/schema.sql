@@ -1,7 +1,6 @@
 CREATE DATABASE IF NOT EXISTS `odyssey-db-sp25`;
 USE `odyssey-db-sp25`;
 
-
 -- CREATE TABLE Cities(
 --     CityId INT,
 --     CityName VARCHAR(50) NOT NULL,
