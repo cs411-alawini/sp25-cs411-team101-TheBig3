@@ -2,20 +2,36 @@ CREATE DATABASE IF NOT EXISTS `odyssey-db-sp25`;
 USE `odyssey-db-sp25`;
 
 
-CREATE TABLE Cities(
-    CityId INT,
-    CityName VARCHAR(50) NOT NULL,
-    Longitude DECIMAL(13, 10) NOT NULL,
-    Latitude DECIMAL(13, 10) NOT NULL,
-    CityPopulation INT NOT NULL,
-    CityLanguage VARCHAR(50),
-    Country VARCHAR(50) NOT NULL,
-    Province VARCHAR(50),
-    avgTmp DECIMAL(3, 2),
-    avgMealPrice DECIMAL(3, 2),
-    avgTicketPrice DECIMAL(5, 2),
+-- CREATE TABLE Cities(
+--     CityId INT,
+--     CityName VARCHAR(50) NOT NULL,
+--     Longitude DECIMAL(13, 10) NOT NULL,
+--     Latitude DECIMAL(13, 10) NOT NULL,
+--     CityPopulation INT NOT NULL,
+--     CityLanguage VARCHAR(50),
+--     Country VARCHAR(50) NOT NULL,
+--     Province VARCHAR(50),
+--     avgTmp DECIMAL(3, 2),
+--     avgMealPrice DECIMAL(3, 2),
+--     avgTicketPrice DECIMAL(5, 2),
 
-    PRIMARY KEY (CityId),
+--     PRIMARY KEY (CityId),
+-- );  
+
+CREATE TABLE WorldCities(
+    city VARCHAR(50) NOT NULL,
+    city_ascii VARCHAR(50) NOT NULL,
+    lat DECIMAL(13, 10) NOT NULL,     
+    lng DECIMAL(13, 10) NOT NULL,      
+    country VARCHAR(50)    
+    iso2 VARCHAR(4),
+    iso3 VARCHAR(4),
+    admin_name VARCHAR(50) NOT NULL,
+    capital VARCHAR(50) NOT NULL,
+    population INT NOT NULL,
+    id VARCHAR(50)
+
+    PRIMARY KEY(id) 
 );  
 
 CREATE TABLE VacationSpots(
