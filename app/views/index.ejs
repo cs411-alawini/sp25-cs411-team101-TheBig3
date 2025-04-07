@@ -1,11 +1,72 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8" />
     <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   </head>
   <body>
-    <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
+    <header>
+      <div class="title">Odyssey</div>
+      <div class="search-bar">
+        <input type="text" placeholder="Search vacation spots, cities..." />
+      </div>
+    </header>
+
+    <div style="text-align: center; width: 100%;">
+      <button id="crud-button">CRUD Retrieval</button>
+    </div>
+
+    <div class="map-container">
+      
+      <p>Map view coming soon...</p>
+    </div>
+
+    <div id="crud-table-container" style="width: 90%; margin: 1rem auto;"></div>
+
+    <script>
+      document.getElementById("crud-button").addEventListener("click", function () {
+        fetch('/users/top10')
+          .then(response => response.json())
+          .then(data => {
+            const users = data.users;
+    
+            if (!users.length) {
+              document.getElementById("crud-table-container").innerHTML = '<p>No users found.</p>';
+              return;
+            }
+    
+            const columns = Object.keys(users[0]);
+    
+            const headerRow = columns.map(col => `<th>${col}</th>`).join('');
+            const bodyRows = users.map(user => `
+              <tr>
+                ${columns.map(col => `<td>${user[col]}</td>`).join('')}
+              </tr>
+            `).join('');
+    
+            const tableHTML = `
+              <table>
+                <thead>
+                  <tr>${headerRow}</tr>
+                </thead>
+                <tbody>
+                  ${bodyRows}
+                </tbody>
+              </table>
+            `;
+    
+            document.getElementById("crud-table-container").innerHTML = tableHTML;
+          })
+          .catch(err => {
+            console.error("Failed to fetch user data:", err);
+            document.getElementById("crud-table-container").innerHTML = '<p>Error loading users.</p>';
+          });
+      });
+    </script>
+    
+    
   </body>
 </html>
