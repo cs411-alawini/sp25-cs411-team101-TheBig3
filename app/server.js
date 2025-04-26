@@ -57,6 +57,27 @@ app.get('/users/top10', (req, res) => {
 });
 
 
+app.get('/search', (req, res) => {
+  const keyword = req.query.keyword;
+  
+  if (!keyword) {
+    return res.status(400).json({ error: 'Missing keyword for search' });
+  }
+
+  const query = `SELECT * FROM VacationSpots WHERE VacationSpotName LIKE ?`;
+
+  connection.query(query, [`%${keyword}%`], (err, results) =>  {
+    if (err) {
+      console.error('Error searching for vacation spot', err);
+      return res.status(500).json({ error: 'Failed to search for vacation spot' });
+    }
+
+    res.json({ searchResults: results });
+  });
+});
+ 
+
+
 app.listen(3008, '0.0.0.0', function () {
   console.log('Node app is running on port 3008');
   console.log("Open at http://localhost:3008");

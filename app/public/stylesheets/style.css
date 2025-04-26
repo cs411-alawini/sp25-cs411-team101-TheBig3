@@ -5,6 +5,7 @@
   padding: 0;
 }
 
+
 body {
   background-color: #f4f6f8;
   color: #333;
@@ -23,11 +24,13 @@ header {
 .title {
   font-size: 1.5rem;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .search-bar {
-  flex-grow: 1;
-  max-width: 400px;
+  position: relative;
+  flex-grow: 0;
+  width: 300px;
   margin-left: 2rem;
 }
 
@@ -39,21 +42,51 @@ header {
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
+
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-top: none;
+  max-height: 250px;
+  overflow-y: auto;
+  display: none;
+  z-index: 10;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 0 0 12px 12px;
+}
+
+.dropdown-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.dropdown-item:hover {
+  background-color: #f0f0f0;
+}
+
 .map-container {
   margin: 2rem auto;
   width: 90%;
-  height: 500px;
-  background-color: #e0e0e0;
-  border: 2px dashed #ccc;
-  border-radius: 16px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #777;
-  font-size: 1.2rem;
+  height: 600px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  background: white;
+  /* fallback */
 }
 
-/* Responsive */
+#map {
+  width: 100%;
+  height: 100%;
+}
+
+
+
 @media (max-width: 768px) {
   header {
     flex-direction: column;
@@ -91,10 +124,11 @@ table {
   background-color: #fff;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-th, td {
+th,
+td {
   padding: 1rem;
   text-align: left;
   border-bottom: 1px solid #e0e0e0;
@@ -117,4 +151,58 @@ td button {
 
 td button:hover {
   background-color: #ddd;
+}
+
+.hero {
+  width: 100%;
+  height: 60vh;
+  /* You can tweak height */
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+}
+
+.hero-title {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #111111;
+  /* deep black */
+  margin-bottom: 1rem;
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  color: #666666;
+  /* mid grey */
+  font-weight: 400;
+}
+
+.right-side {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  /* spacing between Explore and SearchBar */
+  flex-shrink: 0;
+  /* prevent squishing */
+}
+
+
+.explore {
+  margin-left: 2rem;
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: #333;
+  cursor: pointer;
+  transition: color 0.2s ease-in-out;
+  flex-shrink: 0;
+  /* so it doesn't collapse on small screens */
+}
+
+.explore:hover {
+  color: #555;
+  /* slight color darkening when hover */
 }
