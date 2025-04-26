@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>
+    <%= title %>
+  </title>
+  <link rel="stylesheet" href="/stylesheets/style.css">
+  <link href='https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.css' rel='stylesheet' />
+  <script src='https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js'></script>
+</head>
+
+<body>
+  <header>
+    <a href = "/" class="title">Odyssey</a>
+
+    <div class="right-side">
+      <nav class="nav-links">
+        <a href="/browse">Browse</a>
+        <a href="/explore">Explore</a>
+        <a href="/profile">Profile</a>
+      </nav>
+
+      <div class="search-bar">
+        <input id="search-input" type="text" placeholder="Search vacation spots, cities..." />
+        <div id="search-dropdown" class="dropdown"></div>
+      </div>
+    </div>
+  </header>
+
+  <section>
+    <h1>Explore Social Media</h1>
+    <p>Here is the feed of users' adventures!</p>
+  </section>
+
+  <div class="map-container">
+    <div id = "map"></div>
+  </div>
+</body>
+
+<footer class="site-footer">
+  <p>CS 411 Database Systems Project — Last updated April 2025</p>
+  <p><a href="https://github.com/cs411-alawini/sp25-cs411-team101-TheBig3" target="_blank">View our GitHub Repository</a></p>
+</footer>
+
+<script>
+      let searchTimeout = null;
+
+
+document.getElementById("search-input").addEventListener("input", function () {
+clearTimeout(searchTimeout);
+const keyword = this.value.trim();
+
+const dropdown = document.getElementById("search-dropdown");
+dropdown.innerHTML = ''; // clear previous dropdown items
+
+if (!keyword) {
+dropdown.style.display = 'none';
+return;
+}
+
+searchTimeout = setTimeout(() => {
+fetch(`/search?keyword=${encodeURIComponent(keyword)}`)
+  .then(response => response.json())
+  .then(data => {
+    const results = data.searchResults;
+    console.log(results)
+
+    if (!results.length) {
+      dropdown.style.display = 'none';
+      return;
+    }
+
+    const itemsHTML = results.map(item => 
+      `<div class="dropdown-item">${item.VacationSpotName}</div>` // or whatever field you want to display
+    ).join('');
+
+    dropdown.innerHTML = itemsHTML;
+    dropdown.style.display = 'block';
+  })
+  .catch(err => {
+    console.error("Failed to perform search:", err);
+    dropdown.style.display = 'none';
+  });
+}, 400);
+});
+
+
+  mapboxgl.accessToken = 'pk.eyJ1Ijoicmlja3lsaW4xIiwiYSI6ImNtOXlqa2NteTFrdWMya3ByZW5taGw3NjAifQ.PlPUQnzvMMZkKQP1GTPyBQ';
+    const map = new mapboxgl.Map({
+      container: 'map', // container ID
+      style: 'mapbox://styles/mapbox/streets-v12', // style URL
+      center: [-74.5, 40], // starting position [lng, lat]
+      zoom: 9, // starting zoom
+    });
+
+</script>
+
+</html>

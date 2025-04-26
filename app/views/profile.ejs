@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>
+    <%= title %>
+  </title>
+  <link rel="stylesheet" href="/stylesheets/style.css">
+</head>
+
+<body>
+  <header>
+    <a href = "/" class="title">Odyssey</a>
+
+    <div class="right-side">
+      <nav class="nav-links">
+        <a href="/browse">Browse</a>
+        <a href="/explore">Explore</a>
+        <a href="/profile">Profile</a>
+      </nav>
+
+      <div class="search-bar">
+        <input id="search-input" type="text" placeholder="Search vacation spots, cities..." />
+        <div id="search-dropdown" class="dropdown"></div>
+      </div>
+    </div>
+  </header>
+
+  <div id="profile-section"></div>
+
+  <footer class="site-footer">
+    <p>CS 411 Database Systems Project — Last updated April 2025</p>
+    <p><a href="https://github.com/cs411-alawini/sp25-cs411-team101-TheBig3" target="_blank">View our GitHub Repository</a></p>
+  </footer>
+  
+  <script>
+        let searchTimeout = null;
+
+
+document.getElementById("search-input").addEventListener("input", function () {
+clearTimeout(searchTimeout);
+const keyword = this.value.trim();
+
+const dropdown = document.getElementById("search-dropdown");
+dropdown.innerHTML = ''; // clear previous dropdown items
+
+if (!keyword) {
+dropdown.style.display = 'none';
+return;
+}
+
+searchTimeout = setTimeout(() => {
+fetch(`/search?keyword=${encodeURIComponent(keyword)}`)
+  .then(response => response.json())
+  .then(data => {
+    const results = data.searchResults;
+    console.log(results)
+
+    if (!results.length) {
+      dropdown.style.display = 'none';
+      return;
+    }
+
+    const itemsHTML = results.map(item => 
+      `<div class="dropdown-item">${item.VacationSpotName}</div>` // or whatever field you want to display
+    ).join('');
+
+    dropdown.innerHTML = itemsHTML;
+    dropdown.style.display = 'block';
+  })
+  .catch(err => {
+    console.error("Failed to perform search:", err);
+    dropdown.style.display = 'none';
+  });
+}, 400);
+});
+
+
+    async function getUserInfo() {
+      try {
+        const response = await fetch('/getUserInfo');
+        const data = await response.json();
+  
+        console.log('data is', data);
+  
+        const user = data.user;
+  
+        if (!user) {
+          console.error('No user data received.');
+          return;
+        }
+  
+        const profileHTML = `
+          <section class="profile-container">
+            <div class="profile-card">
+              <img class="profile-picture" src="${user.ProfilePictureUrl}" alt="Profile Picture" id="profile-pic">
+  
+              <h2 id="username-text">${user.Username}</h2>
+              <p id="description-text" class="description">${user.ProfileDescription}</p>
+  
+              <div class="profile-details">
+                <p><strong>Gender:</strong> <span id="gender-text">${user.Gender}</span></p>
+                <p><strong>Country:</strong> <span id="country-text">${user.Country}</span></p>
+                <p><strong>Age:</strong> <span id="age-text">${user.Age}</span></p>
+              </div>
+  
+              <button id="edit-btn">Edit</button>
+              <button id="save-btn" style="display:none;">Save Changes</button>
+            </div>
+          </section>
+        `;
+  
+        document.getElementById('profile-section').innerHTML = profileHTML;
+  
+        document.getElementById('edit-btn').addEventListener('click', enableEditing);
+        document.getElementById('save-btn').addEventListener('click', saveChanges);
+  
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    }
+  
+    function enableEditing() {
+  
+      const description = document.getElementById('description-text').innerText;
+      document.getElementById('description-text').outerHTML = `<textarea id="description-input" class="profile-textarea">${description}</textarea>`;
+  
+      const gender = document.getElementById('gender-text').innerText;
+      document.getElementById('gender-text').outerHTML = `<input id="gender-input" class="profile-input" value="${gender}" />`;
+  
+      const country = document.getElementById('country-text').innerText;
+      document.getElementById('country-text').outerHTML = `<input id="country-input" class="profile-input" value="${country}" />`;
+  
+      const age = document.getElementById('age-text').innerText;
+      document.getElementById('age-text').outerHTML = `<input id="age-input" class="profile-input" type="number" value="${age}" />`;
+  
+      document.getElementById('edit-btn').style.display = 'none';
+      document.getElementById('save-btn').style.display = 'inline-block';
+    }
+  
+    async function saveChanges() {
+  const updatedUser = {
+    Username: document.getElementById('username-text').innerText, // <-- grab from <h2> not input
+    ProfileDescription: document.getElementById('description-input').value,
+    Gender: document.getElementById('gender-input').value,
+    Country: document.getElementById('country-input').value,
+    Age: document.getElementById('age-input').value
+  };
+
+  console.log('Updated User Data:', updatedUser);
+
+  try {
+    const response = await fetch('/updateUserInfo', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(updatedUser)
+    });
+
+    const result = await response.json();
+    console.log('Server response:', result);
+
+    if (response.ok) {
+      alert('Profile updated successfully!');
+    } else {
+      alert('Failed to update profile.');
+    }
+
+  } catch (error) {
+    console.error('Error saving changes:', error);
+    alert('An error occurred while saving.');
+  }
+
+  // Replace editable fields back to text
+  document.getElementById('description-input').outerHTML = `<p id="description-text" class="description">${updatedUser.ProfileDescription}</p>`;
+  document.getElementById('gender-input').outerHTML = `<span id="gender-text">${updatedUser.Gender}</span>`;
+  document.getElementById('country-input').outerHTML = `<span id="country-text">${updatedUser.Country}</span>`;
+  document.getElementById('age-input').outerHTML = `<span id="age-text">${updatedUser.Age}</span>`;
+
+  document.getElementById('edit-btn').style.display = 'inline-block';
+  document.getElementById('save-btn').style.display = 'none';
+}
+
+
+  
+    window.onload = getUserInfo;
+  </script>
+  
+</body>
+
+</html>

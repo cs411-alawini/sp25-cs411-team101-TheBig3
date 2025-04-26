@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/stylesheets/style.css">
+</head>
+
+<body>
+  <header>
+    <a href="/" class="title">Odyssey</a>
+
+    <div class="right-side">
+      <nav class="nav-links">
+        <a href="/browse">Browse</a>
+        <a href="/explore">Explore</a>
+        <a href="/profile">Profile</a>
+      </nav>
+
+      <div class="search-bar">
+        <input id="search-input" type="text" placeholder="Search vacation spots, cities..." />
+        <div id="search-dropdown" class="dropdown"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="feed-container">
+    <h1 class="feed-title">User Feed</h1>
+
+    <div id="feed-section">
+      <!-- Posts will be injected here -->
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>CS 411 Database Systems Project — Last updated April 2025</p>
+    <p><a href="https://github.com/cs411-alawini/sp25-cs411-team101-TheBig3" target="_blank">View our GitHub Repository</a></p>
+  </footer>
+
+  <script>
+        let searchTimeout = null;
+
+
+document.getElementById("search-input").addEventListener("input", function () {
+clearTimeout(searchTimeout);
+const keyword = this.value.trim();
+
+const dropdown = document.getElementById("search-dropdown");
+dropdown.innerHTML = ''; // clear previous dropdown items
+
+if (!keyword) {
+dropdown.style.display = 'none';
+return;
+}
+
+searchTimeout = setTimeout(() => {
+fetch(`/search?keyword=${encodeURIComponent(keyword)}`)
+  .then(response => response.json())
+  .then(data => {
+    const results = data.searchResults;
+    console.log(results)
+
+    if (!results.length) {
+      dropdown.style.display = 'none';
+      return;
+    }
+
+    const itemsHTML = results.map(item => 
+      `<div class="dropdown-item">${item.VacationSpotName}</div>` // or whatever field you want to display
+    ).join('');
+
+    dropdown.innerHTML = itemsHTML;
+    dropdown.style.display = 'block';
+  })
+  .catch(err => {
+    console.error("Failed to perform search:", err);
+    dropdown.style.display = 'none';
+  });
+}, 400);
+});
+
+
+    async function loadFeed() {
+      try {
+        const response = await fetch('/getUserFeed');
+        const data = await response.json();
+
+        console.log('Feed data:', data);
+
+        const feed = data.feed;
+
+        if (!feed || feed.length === 0) {
+          document.getElementById('feed-section').innerHTML = '<p>No posts available yet.</p>';
+          return;
+        }
+
+        // Only render the first post
+        const post = feed[0];
+
+        const postHTML = `
+          <div class="post-card">
+            <div class="post-header">
+              <img src="https://i.pinimg.com/736x/e5/b9/81/e5b98110fcd62d6ebe0e636262170175.jpg" alt="Profile" class="post-profile-pic">
+              <div>
+                <a href="/profile" class="post-username">${post.Username}</a>
+                <p class="post-time">${new Date(post.CreatedAt).toLocaleString()}</p>
+              </div>
+            </div>
+
+            <p class="post-caption">${post.ReviewText}</p>
+
+            <!-- Optionally attach an image if you want -->
+            <!--<img src="..." alt="Attached Image" class="post-image">-->
+
+            <div class="post-footer">
+              ❤️ ${post.LikeCount} likes
+            </div>
+          </div>
+        `;
+
+        document.getElementById('feed-section').innerHTML = postHTML;
+
+      } catch (error) {
+        console.error('Error loading feed:', error);
+        document.getElementById('feed-section').innerHTML = '<p>Failed to load feed.</p>';
+      }
+    }
+
+    window.onload = loadFeed;
+  </script>
+</body>
+
+</html>
