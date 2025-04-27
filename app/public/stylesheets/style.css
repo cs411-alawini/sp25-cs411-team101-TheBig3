@@ -429,3 +429,122 @@ h2#username-text {
 .site-footer a:hover {
   text-decoration: underline;
 }
+
+.trip-page {
+  display: flex;
+  gap: 2rem;
+  padding: 2rem;
+  justify-content: center;
+}
+
+
+
+.trip-right {
+  flex: 3;
+}
+
+
+
+.review-form {
+  border: 1px solid #ccc;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.submit-button {
+  margin-top: 1rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  width: 100%;
+}
+
+.star-rating {
+  display: flex;
+  gap: 0.25rem;
+  font-size: 2rem;
+  color: #ccc;
+  cursor: pointer;
+}
+
+.star-rating .star.selected {
+  color: #FFD700; /* Gold color for selected stars */
+}
+
+/* --- Large top button --- */
+.toggle-button {
+  width: 100%;
+  padding: 1rem 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  background: #0070f3;
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  margin-bottom: 1.25rem;   /* gap above the review list */
+}
+
+/* 1️⃣  Make the entire left column a flex-box and center its children */
+.trip-left {
+  flex: 1;
+  max-width: 300px;
+  display: flex;           /* NEW */
+  flex-direction: column;  /* keep vertical stacking */
+  align-items: center;     /* horizontally center everything */
+}
+
+/* 2️⃣  Center the button itself */
+.toggle-button {
+  width: 90%;              /* a bit narrower so “auto” centering is visible */
+  max-width: 260px;        /* keep it from getting too wide on large screens */
+  margin: 0 auto 1.25rem;  /* ⬅️ auto left/right = centered */
+  text-align: center;      /* center the text inside */
+}
+
+/* 3️⃣  Center the section heading */
+.my-reviews-title {
+  width: 100%;
+  text-align: center;
+}
+
+
+/* --- Card list container --- */
+.review-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;                /* space between cards */
+}
+
+/* --- Individual review card --- */
+.review-card {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+.review-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.review-card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.review-card-rating {
+  color: #f5c518;           /* gold stars */
+  font-size: 1.1rem;
+}
+
+.review-card-text {
+  margin: 0;
+  line-height: 1.4;
+}

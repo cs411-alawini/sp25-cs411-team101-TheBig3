@@ -31,7 +31,7 @@ app.set('view engine', 'ejs');
 
 
 var pagesRouter = require('./routes/pages');
-console.log('Pages router loaded:', pagesRouter);
+// console.log('Pages router loaded:', pagesRouter);
 
 app.use('/', pagesRouter);
 
@@ -73,7 +73,7 @@ app.get('/search', (req, res) => {
     return res.status(400).json({ error: 'Missing keyword for search' });
   }
 
-  const query = `SELECT * FROM VacationSpots WHERE VacationSpotName LIKE ?`;
+  const query = `SELECT VacationSpotName, CityId FROM VacationSpots WHERE VacationSpotName LIKE ?`;
 
   connection.query(query, [`%${keyword}%`], (err, results) => {
     if (err) {
@@ -132,6 +132,73 @@ app.post('/updateUserInfo', (req, res) => {
     res.json({ message: 'User info updated successfully!' });
   });
 });
+
+app.post('/likeReview', (req, res) => {
+  const { ReviewID } = req.body;
+
+  if (!ReviewID) {
+    return res.status(400).json({ error: 'ReviewID is required.' });
+  }
+
+  const query = `
+    UPDATE Reviews
+    SET LikeCount = LikeCount + 1
+    WHERE ReviewID = ?
+  `;
+
+  connection.query(query, [ReviewID], (err, results) => {
+    if (err) {
+      console.error('Error updating LikeCount', err);
+      return res.status(500).json({ error: 'Failed to update like count' });
+    }
+
+    // After updating, fetch the updated LikeCount to send back
+    connection.query(
+      'SELECT LikeCount FROM Reviews WHERE ReviewID = ?',
+      [ReviewID],
+      (err, likeResults) => {
+        if (err || likeResults.length === 0) {
+          console.error('Error fetching updated LikeCount', err);
+          return res.status(500).json({ error: 'Failed to fetch updated like count' });
+        }
+
+        res.json({ updatedLikeCount: likeResults[0].LikeCount });
+      }
+    );
+  });
+});
+
+app.get('/getLocation', (req, res) => {
+  const { cityId } = req.query;
+
+  if (!cityId) {
+    return res.status(400).json({ error: 'cityId is required.' });
+  }
+
+  const query = `
+    SELECT lat, lng
+    FROM WorldCities
+    WHERE id = ?
+  `;
+
+  connection.query(query, [cityId], (err, results) => {
+    if (err) {
+      console.error('Error fetching location', err);
+      return res.status(500).json({ error: 'Failed to fetch location' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'City not found.' });
+    }
+
+
+    const { lat, lng } = results[0];
+    res.json({ lat, lng });
+
+  });
+});
+
+
 
 app.get('/getUserFeed', (req, res) => {
   const query = `

@@ -15,6 +15,7 @@
       <nav class="nav-links">
         <a href="/browse">Browse</a>
         <a href="/explore">Explore</a>
+        <a href="/log">Log</a>
         <a href="/profile">Profile</a>
       </nav>
 
@@ -114,8 +115,12 @@ fetch(`/search?keyword=${encodeURIComponent(keyword)}`)
             <!--<img src="..." alt="Attached Image" class="post-image">-->
 
             <div class="post-footer">
-              ❤️ ${post.LikeCount} likes
-            </div>
+  <button onclick="likePost(${post.ReviewID})" class="like-button">❤️ <span id="like-count">${post.LikeCount}</span> likes</button>
+
+</button>
+
+</div>
+
           </div>
         `;
 
@@ -128,6 +133,33 @@ fetch(`/search?keyword=${encodeURIComponent(keyword)}`)
     }
 
     window.onload = loadFeed;
+
+    async function likePost(reviewId) {
+    try {
+    const response = await fetch('/likeReview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ReviewID: reviewId }),
+    });
+
+
+    if (!response.ok) {
+      throw new Error('Failed to like post');
+    }
+
+    const data = await response.json();
+
+    // Update the like count on the page
+    document.getElementById('like-count').innerText = data.updatedLikeCount;
+    const likeButton = document.getElementById('like-button');
+    likeButton.disabled = true;
+  } catch (error) {
+    console.error('Error liking post:', error);
+    alert('Failed to like the post.');
+  }
+}
+
+
   </script>
 </body>
 

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/stylesheets/style.css">
+</head>
+
+<body>
+  <header>
+    <a href="/" class="title">Odyssey</a>
+
+    <div class="right-side">
+      <nav class="nav-links">
+        <a href="/browse">Browse</a>
+        <a href="/explore">Explore</a>
+        <a href="/log">Log</a>
+        <a href="/profile">Profile</a>
+      </nav>
+
+      <div class="search-bar">
+        <input id="search-input" type="text" placeholder="Search vacation spots, cities..." />
+        <div id="search-dropdown" class="dropdown"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="trip-page">
+    <div class="trip-left">
+      <!-- BIG BUTTON AT THE TOP -->
+      <button id="write-review-toggle" class="toggle-button">
+        ✍️ Write a Review
+      </button>
+    
+      <!-- REVIEW FORM (still hidden until toggled) -->
+      <form id="write-review-form" class="review-form" style="display:none;">
+        <!-- …your existing form fields stay exactly the same… -->
+      </form>
+    
+      <!-- USER’S PREVIOUS REVIEWS (CARD LIST) -->
+      <h2 class="my-reviews-title">Your Reviews</h2>
+      <div id="user-reviews" class="review-card-list">
+        <!-- JavaScript will inject each review card here -->
+      </div>
+    </div>
+    
+  
+  </main>
+  
+
+  <footer class="site-footer">
+    <p>CS 411 Database Systems Project — Last updated April 2025</p>
+    <p><a href="https://github.com/cs411-alawini/sp25-cs411-team101-TheBig3" target="_blank">View our GitHub Repository</a></p>
+  </footer>
+
+  <script>
+
+document.getElementById('write-review-toggle').addEventListener('click', function() {
+  const form = document.getElementById('write-review-form');
+  form.style.display = (form.style.display === 'none') ? 'block' : 'none';
+});
+
+        let searchTimeout = null;
+
+
+document.getElementById("search-input").addEventListener("input", function () {
+clearTimeout(searchTimeout);
+const keyword = this.value.trim();
+
+const dropdown = document.getElementById("search-dropdown");
+dropdown.innerHTML = ''; // clear previous dropdown items
+
+if (!keyword) {
+dropdown.style.display = 'none';
+return;
+}
+
+searchTimeout = setTimeout(() => {
+fetch(`/search?keyword=${encodeURIComponent(keyword)}`)
+  .then(response => response.json())
+  .then(data => {
+    const results = data.searchResults;
+    console.log(results)
+
+    if (!results.length) {
+      dropdown.style.display = 'none';
+      return;
+    }
+
+    const itemsHTML = results.map(item => 
+      `<div class="dropdown-item">${item.VacationSpotName}</div>` // or whatever field you want to display
+    ).join('');
+
+    dropdown.innerHTML = itemsHTML;
+    dropdown.style.display = 'block';
+  })
+  .catch(err => {
+    console.error("Failed to perform search:", err);
+    dropdown.style.display = 'none';
+  });
+}, 400);
+});
+
+const stars = document.querySelectorAll('#star-rating .star');
+const ratingInput = document.getElementById('review-rating');
+
+stars.forEach(star => {
+  star.addEventListener('click', function() {
+    const rating = this.getAttribute('data-value');
+    ratingInput.value = rating;
+
+    // Highlight the selected stars
+    stars.forEach(s => {
+      if (s.getAttribute('data-value') <= rating) {
+        s.classList.add('selected');
+      } else {
+        s.classList.remove('selected');
+      }
+    });
+  });
+});
+
+
+  </script>
+</body>
+
+</html>

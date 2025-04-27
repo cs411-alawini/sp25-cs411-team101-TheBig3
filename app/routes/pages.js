@@ -21,4 +21,8 @@ router.get('/browse', (req, res) => {
   res.render('browse', { title: 'Browse Spots' });
 });
 
+router.get('/log', (req, res) => {
+  res.render('log', { title: 'Trip Log' });
+});
+
 module.exports = router;
