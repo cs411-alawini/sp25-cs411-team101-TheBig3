@@ -40,6 +40,10 @@
     <div class="hero-overlay">
       <h1 class="hero-title">Travel the World</h1>
       <p class="hero-subtitle">Where will your adventure take you?</p>
+      <p class="typing-text">
+        Find your next journey in 
+        <span class="typing-destination"></span>
+      </p>      
       <a href="/explore" class="hero-button">Start Exploring</a>
     </div>
   </section>
@@ -138,6 +142,48 @@
 
   </script>
 
+<script>
+  const destinations = ["Paris", "Tokyo", "Bali", "New York", "Rome", "Kyoto"];
+  const typingElement = document.querySelector('.typing-destination');
+
+  let destinationIndex = 0;
+  let charIndex = 0;
+  let isDeleting = false;
+
+  function type() {
+    const currentDestination = destinations[destinationIndex];
+
+    if (!isDeleting && charIndex <= currentDestination.length) {
+      typingElement.textContent = currentDestination.substring(0, charIndex);
+      charIndex++;
+    } else if (isDeleting && charIndex >= 0) {
+      typingElement.textContent = currentDestination.substring(0, charIndex);
+      charIndex--;
+    }
+
+    let typingSpeed = isDeleting ? 100 : 200;
+
+    if (!isDeleting && charIndex === currentDestination.length + 1) {
+      // Pause before deleting
+      setTimeout(() => {
+        isDeleting = true;
+        type();
+      }, 1500); // Delay after fully typing the word
+      return;
+    }
+
+    if (isDeleting && charIndex < 0) {
+      isDeleting = false;
+      destinationIndex = (destinationIndex + 1) % destinations.length;
+    }
+
+    setTimeout(type, typingSpeed);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    type();
+  });
+</script>
 
 
 

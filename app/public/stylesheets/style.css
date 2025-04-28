@@ -153,33 +153,110 @@ td button:hover {
   background-color: #ddd;
 }
 
+
+.hero-overlay {
+  display: flex;
+  flex-direction: column;      /* Stack vertically */
+  justify-content: center;     /* Center vertically */
+  align-items: center;         /* Center horizontally */
+  height: 100%;                /* Take full height of hero */
+}
 .hero {
   width: 100%;
-  height: 60vh;
-  /* You can tweak height */
-  background-color: #ffffff;
+  height: 100vh; /* Full viewport height */
+  background-image: url('/images/Night_sky.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: 2rem;
+}
+.hero-button {
+  margin-top: 1rem;
+  padding: 0.75rem 2rem;
+  background-color: #0077ff;
+  color: #ffffff;
+  text-decoration: none;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.hero-button:hover {
+  background-color: #005ecc;
+  transform: translateY(-2px);
 }
 
 .hero-title {
-  font-size: 3rem;
-  font-weight: 700;
-  color: #111111;
-  /* deep black */
+  font-size: 4rem; /* Bigger & bolder */
+  font-weight: 800;
+  color: #ffffff;
+  text-shadow: 2px 4px 12px rgba(0, 0, 0, 0.7); /* Clean glow */
   margin-bottom: 1rem;
+  animation: fadeInUp 1.2s ease-in-out;
+  letter-spacing: 1px;
 }
 
 .hero-subtitle {
-  font-size: 1.25rem;
-  color: #666666;
-  /* mid grey */
+  font-size: 1.5rem;
   font-weight: 400;
+  color: #e2e8f0; /* subtle silver/gray */
+  text-shadow: 1px 2px 8px rgba(0, 0, 0, 0.5);
+  margin-bottom: 2rem;
+  animation: fadeInUp 1.4s ease-in-out;
 }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (max-width: 600px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.2rem;
+  }
+}
+.typing-text {
+  color: #e2e8f0;
+  font-size: 1.3rem;
+  margin-top: -1rem;
+  opacity: 0; /* Start invisible */
+  animation: fadeInUp 1.6s ease-in-out forwards; /* Fade-up animation */
+  animation-delay: 1s; /* Adjust the delay to match your subtitle timing */
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+.typing-destination {
+  color: #60a5fa; /* Light blue to highlight the location */
+  font-weight: 600;
+}
+
+
 
 .right-side {
   display: flex;
