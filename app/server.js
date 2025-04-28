@@ -77,7 +77,16 @@ app.get('/search', (req, res) => {
     query = `SELECT VacationSpotName, CityId FROM VacationSpots ORDER BY VacationSpotName ASC`;
     values = [];
   } else {
-    query = `SELECT VacationSpotName, CityId FROM VacationSpots WHERE VacationSpotName LIKE ?`;
+    query = `
+
+    SELECT vs.VacationSpotName, vs.CityId
+FROM VacationSpots vs
+JOIN WorldCities c ON vs.CityId = c.id
+WHERE c.Country = 'United States'
+  AND vs.VacationSpotName LIKE ?;
+
+
+    `;
     values = [`%${keyword}%`];
   }
 
@@ -89,6 +98,29 @@ app.get('/search', (req, res) => {
 
     res.json({ searchResults: results });
   });
+});
+
+app.get('/vacation-spot-info', async (req, res) => {
+  const spot = req.query.spot;
+  if (!spot) return res.status(400).json({ error: 'Spot name required' });
+
+  try {
+    const [rows] = await connection.promise().query(`
+      SELECT c.CityName
+      FROM VacationSpots vs
+      JOIN WorldCities c ON vs.CityId = c.id
+      WHERE vs.VacationSpotName = ?
+    `, [spot]);
+
+    if (rows.length > 0) {
+      res.json(rows[0]);
+    } else {
+      res.status(404).json({ error: 'Spot not found' });
+    }
+  } catch (err) {
+    console.error('Error fetching spot info:', err);
+    res.status(500).json({ error: 'Database query failed' });
+  }
 });
 
 

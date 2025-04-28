@@ -70,8 +70,9 @@
             }
 
             const itemsHTML = results.map(item =>
-              `<div class="dropdown-item">${item.VacationSpotName}</div>`
-            ).join('');
+  `<div class="dropdown-item" onclick="redirectToExplore('${encodeURIComponent(item.VacationSpotName)}')">${item.VacationSpotName}</div>`
+).join('');
+
 
             dropdown.innerHTML = itemsHTML;
             dropdown.style.display = 'block';
@@ -82,6 +83,12 @@
           });
       }, 400);
     });
+
+    function redirectToExplore(vacationSpotName) {
+  // Redirect to /explore?spot=VacationSpotName
+  window.location.href = `/explore?spot=${vacationSpotName}`;
+}
+
 
     async function loadFeed() {
       try {
