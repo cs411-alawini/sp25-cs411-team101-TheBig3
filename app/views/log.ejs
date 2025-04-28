@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <title><%= title %></title>
@@ -8,121 +7,309 @@
 </head>
 
 <body>
-  <header>
-    <a href="/" class="title">Odyssey</a>
+<header>
+  <a href="/" class="title">Odyssey</a>
+  <div class="right-side">
+    <nav class="nav-links">
+      <a href="/browse">Browse</a><a href="/explore">Explore</a>
+      <a href="/log">Log</a><a href="/profile">Profile</a>
+    </nav>
 
-    <div class="right-side">
-      <nav class="nav-links">
-        <a href="/browse">Browse</a>
-        <a href="/explore">Explore</a>
-        <a href="/log">Log</a>
-        <a href="/profile">Profile</a>
-      </nav>
-
-      <div class="search-bar">
-        <input id="search-input" type="text" placeholder="Search vacation spots, cities..." />
-        <div id="search-dropdown" class="dropdown"></div>
-      </div>
+    <div class="search-bar">
+      <input id="search-input" type="text" placeholder="Search vacation spots, cities…" />
+      <div id="search-dropdown" class="dropdown"></div>
     </div>
-  </header>
+  </div>
+</header>
 
-  <main class="trip-page">
-    <div class="trip-left">
-      <!-- BIG BUTTON AT THE TOP -->
-      <button id="write-review-toggle" class="toggle-button">
-        ✍️ Write a Review
-      </button>
-    
-      <!-- REVIEW FORM (still hidden until toggled) -->
-      <form id="write-review-form" class="review-form" style="display:none;">
-        <!-- …your existing form fields stay exactly the same… -->
-      </form>
-    
-      <!-- USER’S PREVIOUS REVIEWS (CARD LIST) -->
-      <h2 class="my-reviews-title">Your Reviews</h2>
-      <div id="user-reviews" class="review-card-list">
-        <!-- JavaScript will inject each review card here -->
+<main class="trip-page">
+  <div class="trip-left">
+    <!-- ========= CREATE / UPDATE FORM ========= -->
+    <button id="write-review-toggle" class="toggle-button">✍️ Write a Review</button>
+
+    <form id="write-review-form" class="review-form" style="display:none;">
+      <!-- hidden when we’re creating, filled when editing -->
+      <input type="hidden" id="review-id" name="reviewId" value="" />
+
+      <div class="form-group">
+        <label>Rating:</label>
+        <div id="star-rating" class="star-rating">
+          <span class="star" data-value="1">&#9733;</span>
+          <span class="star" data-value="2">&#9733;</span>
+          <span class="star" data-value="3">&#9733;</span>
+          <span class="star" data-value="4">&#9733;</span>
+          <span class="star" data-value="5">&#9733;</span>
+        </div>
+        <input type="hidden" id="review-rating" name="rating" value="" required>
       </div>
-    </div>
-    
-  
-  </main>
-  
 
-  <footer class="site-footer">
-    <p>CS 411 Database Systems Project — Last updated April 2025</p>
-    <p><a href="https://github.com/cs411-alawini/sp25-cs411-team101-TheBig3" target="_blank">View our GitHub Repository</a></p>
-  </footer>
+      <div class="form-group">
+        <label for="vacation-spot-select">Select Vacation Spot:</label>
+        <select id="vacation-spot-select" name="vacationSpotName" required>
+          <option value="">--Select a Vacation Spot--</option>
+        </select>
+      </div>
 
-  <script>
+      <div class="form-group">
+        <label for="review-text">Your Review:</label>
+        <textarea id="review-text" name="reviewText" rows="5"
+                  placeholder="Tell us about your experience…" required></textarea>
+      </div>
 
-document.getElementById('write-review-toggle').addEventListener('click', function() {
-  const form = document.getElementById('write-review-form');
-  form.style.display = (form.style.display === 'none') ? 'block' : 'none';
-});
+      <div class="form-group">
+        <label for="review-images">Upload Photos:</label>
+        <input type="file" id="review-images" name="reviewImages"
+               accept="image/*" multiple>
+      </div>
 
-        let searchTimeout = null;
+      <button type="submit" class="submit-button">Save</button>
+      <button type="button" id="cancel-edit" class="secondary-button"
+              style="display:none;">Cancel</button>
+    </form>
 
+    <!-- ========= LISTS ========= -->
+    <h2 class="my-reviews-title">Your Reviews</h2>
+    <div id="user-reviews" class="review-card-list"></div>
 
-document.getElementById("search-input").addEventListener("input", function () {
-clearTimeout(searchTimeout);
-const keyword = this.value.trim();
+    <h2 class="my-fav-title">My Favorite Spots</h2>
+    <div id="favorite-spots" class="review-card-list"></div>
+  </div>
+</main>
 
-const dropdown = document.getElementById("search-dropdown");
-dropdown.innerHTML = ''; // clear previous dropdown items
+<footer class="site-footer">
+  <p>CS 411 Database Systems Project — Last updated April 2025</p>
+  <p><a href="https://github.com/cs411-alawini/sp25-cs411-team101-TheBig3" target="_blank">
+     View our GitHub Repository</a></p>
+</footer>
 
-if (!keyword) {
-dropdown.style.display = 'none';
-return;
+<script>
+/* ---------- helpers ---------- */
+const username = 'aaronjones';   // TODO: replace with real user
+const stars = [...document.querySelectorAll('#star-rating .star')];
+const ratingInput = document.getElementById('review-rating');
+const form = document.getElementById('write-review-form');
+const reviewIdInput = document.getElementById('review-id');
+const cancelEditBtn = document.getElementById('cancel-edit');
+
+/* ---------- star picker ---------- */
+stars.forEach(star => star.addEventListener('click', () => {
+  const rating = star.dataset.value;
+  ratingInput.value = rating;
+  stars.forEach(s => s.classList.toggle('selected', s.dataset.value <= rating));
+}));
+
+/* ---------- toggle form ---------- */
+document.getElementById('write-review-toggle')
+  .addEventListener('click', () => openFormForCreate());
+
+cancelEditBtn.addEventListener('click', () => hideForm());
+
+function openFormForCreate() {
+  form.reset();
+  reviewIdInput.value = '';
+  ratingInput.value = '';
+  cancelEditBtn.style.display = 'none';
+  form.style.display = 'block';
+  fetchVacationSpots();
 }
 
-searchTimeout = setTimeout(() => {
-fetch(`/search?keyword=${encodeURIComponent(keyword)}`)
-  .then(response => response.json())
-  .then(data => {
-    const results = data.searchResults;
-    console.log(results)
+function openFormForEdit(review) {
+  reviewIdInput.value      = review.ReviewID;
+  document.getElementById('review-text').value  = review.ReviewText  || '';
+  ratingInput.value        = review.ReviewRating;
+  stars.forEach(s => s.classList.toggle('selected', s.dataset.value <= review.ReviewRating));
+  /* Vacation spot is fixed – disable the select so they don’t break FK. */
+  document.getElementById('vacation-spot-select').innerHTML =
+     `<option value="${review.VacationSpotName}" selected>${review.VacationSpotName}</option>`;
+  cancelEditBtn.style.display = 'inline-block';
+  form.style.display = 'block';
+}
 
-    if (!results.length) {
-      dropdown.style.display = 'none';
-      return;
-    }
+/* ---------- create / update ---------- */
+form.addEventListener('submit', e => {
+  e.preventDefault();
+  const data = {
+    ReviewID:        reviewIdInput.value,
+    Username:        username,
+    VacationSpotName: document.getElementById('vacation-spot-select').value,
+    ReviewText:      document.getElementById('review-text').value.trim(),
+    ReviewRating:    ratingInput.value
+  };
+  if (!data.ReviewText || !data.ReviewRating || !data.VacationSpotName) {
+    alert('Please fill out all fields.');
+    return;
+  }
 
-    const itemsHTML = results.map(item => 
-      `<div class="dropdown-item">${item.VacationSpotName}</div>` // or whatever field you want to display
-    ).join('');
+  const isEdit   = !!data.ReviewID;
+  const endpoint = isEdit ? '/updateReview' : '/createReview';
 
-    dropdown.innerHTML = itemsHTML;
-    dropdown.style.display = 'block';
+  fetch(endpoint, {
+    method : 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body   : JSON.stringify(data)
+  })
+  .then(r => r.json())
+  .then(() => {
+    alert(isEdit ? 'Review updated!' : 'Review submitted!');
+    hideForm();
+    fetchUserReviews();
   })
   .catch(err => {
-    console.error("Failed to perform search:", err);
-    dropdown.style.display = 'none';
+    console.error('Save failed:', err);
+    alert('Something went wrong, please try again.');
   });
-}, 400);
 });
 
-const stars = document.querySelectorAll('#star-rating .star');
-const ratingInput = document.getElementById('review-rating');
+function hideForm() { form.style.display = 'none'; }
 
-stars.forEach(star => {
-  star.addEventListener('click', function() {
-    const rating = this.getAttribute('data-value');
-    ratingInput.value = rating;
+/* ---------- delete ---------- */
+function deleteReview(reviewId) {
+  if (!confirm('Delete this review?')) return;
+  fetch('/deleteReview', {
+    method : 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body   : JSON.stringify({ ReviewID: reviewId })
+  })
+  .then(r => r.json())
+  .then(() => fetchUserReviews())
+  .catch(err => {
+    console.error('Delete failed:', err);
+    alert('Could not delete review.');
+  });
+}
 
-    // Highlight the selected stars
-    stars.forEach(s => {
-      if (s.getAttribute('data-value') <= rating) {
-        s.classList.add('selected');
-      } else {
-        s.classList.remove('selected');
+/* ---------- lists ---------- */
+function fetchUserReviews() {
+  fetch(`/getReviews?username=${encodeURIComponent(username)}`)
+    .then(r => r.json())
+    .then(({ reviews }) => {
+      const list = document.getElementById('user-reviews');
+      if (!reviews || !reviews.length) {
+        list.innerHTML = '<p>No reviews yet. Start by writing one!</p>';
+        return;
       }
-    });
+      list.innerHTML = reviews.map(r => `
+  <div class="review-card review-entry">
+    <div class="review-info">
+      <div class="review-card-header">
+        <div class="review-card-title">${r.VacationSpotName}</div>
+        <div class="review-card-rating">${'⭐'.repeat(r.ReviewRating)}</div>
+      </div>
+      <p class="review-card-text">${r.ReviewText}</p>
+      <small>Posted on ${new Date(r.CreatedAt).toLocaleDateString()}</small>
+    </div>
+
+    <div class="review-card-actions">
+      <button class="edit-btn"   data-id="${r.ReviewID}">Edit</button>
+      <button class="delete-btn" data-id="${r.ReviewID}">Delete</button>
+    </div>
+  </div>`).join('');
+
+
+      /* attach listeners once the HTML exists */
+      list.querySelectorAll('.edit-btn').forEach(btn =>
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.id;
+          const rev = reviews.find(x => x.ReviewID == id);
+          openFormForEdit(rev);
+        }));
+      list.querySelectorAll('.delete-btn').forEach(btn =>
+        btn.addEventListener('click', () => deleteReview(btn.dataset.id)));
+    })
+    .catch(err => console.error('Fetching reviews failed:', err));
+}
+
+function fetchVacationSpots() {
+  fetch('/search?keyword=')
+    .then(r => r.json())
+    .then(({ searchResults }) => {
+      const sel = document.getElementById('vacation-spot-select');
+      sel.innerHTML = `<option value="">--Select a Vacation Spot--</option>`;
+      searchResults.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.VacationSpotName;
+        opt.textContent = s.VacationSpotName;
+        sel.appendChild(opt);
+      });
+    })
+    .catch(err => console.error('Fetching spots failed:', err));
+}
+
+function fetchFavoriteSpots() {
+  fetch(`/favorite-top-spots?username=${encodeURIComponent(username)}`)
+    .then(r => r.json())
+    .then(({ topSpots }) => {
+      const list = document.getElementById('favorite-spots');
+
+      list.innerHTML = (topSpots && topSpots.length)
+        ? topSpots.map(s => `
+            <div class="review-card">
+              <!-- left-side spot info -->
+              <div>
+                <strong>${s.VacationSpotName}</strong><br>
+                <small>${s.city || ''}</small><br>
+                <small>⭐ ${s.LikeCount} likes</small>
+              </div>
+
+              <!-- right-side remove toggle -->
+              <button class="remove-fav"
+                      data-name="${s.VacationSpotName}">
+                Remove favorite
+              </button>
+            </div>`).join('')
+        : '<p>No favorite spots yet.</p>';
+
+      /* hook up every “Remove favorite” button */
+      list.querySelectorAll('.remove-fav').forEach(btn =>
+        btn.addEventListener('click',
+          () => toggleFavorite(btn.dataset.name)));
+    })
+    .catch(err => console.error('Fetching favs failed:', err));
+}
+
+
+
+/* ---------- live search ---------- */
+let searchTimeout = null;
+document.getElementById('search-input')
+  .addEventListener('input', e => {
+    clearTimeout(searchTimeout);
+    const kw = e.target.value.trim();
+    const dd = document.getElementById('search-dropdown');
+    if (!kw) { dd.style.display = 'none'; return; }
+    searchTimeout = setTimeout(() => {
+      fetch(`/search?keyword=${encodeURIComponent(kw)}`)
+        .then(r => r.json())
+        .then(({ searchResults }) => {
+          if (!searchResults.length) { dd.style.display = 'none'; return; }
+          dd.innerHTML = searchResults
+            .map(s => `<div class="dropdown-item">${s.VacationSpotName}</div>`).join('');
+          dd.style.display = 'block';
+        })
+        .catch(() => dd.style.display = 'none');
+    }, 400);
   });
+
+  function toggleFavorite(spotName) {
+  fetch('/unfavoriteSpot', {
+    method : 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body   : JSON.stringify({ username, vacationSpotName: spotName })
+  })
+  .then(r => r.json())
+  .then(() => fetchFavoriteSpots())     // refresh the list
+  .catch(err => {
+    console.error('Unfavourite failed:', err);
+    alert('Could not update favourite.');
+  });
+}
+
+
+/* ---------- on load ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  fetchUserReviews();
+  fetchFavoriteSpots();
 });
-
-
-  </script>
+</script>
 </body>
-
 </html>
