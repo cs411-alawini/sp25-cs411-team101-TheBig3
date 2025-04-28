@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Team101-TheBig3
 
 ## Basic Information
@@ -30,3 +31,6 @@ Odyssey is a global vacation review platform where users can log their travel ex
 Users will also be able to follow other users, creating a social-media inspired function where users can view their friends' reviews and travel experiences in a feed interface. Furthermore, this website will also feature a heat map that shows trending vacation locations based on the volume of reviews within a time period.
 
 Odyssey utilizes the following datasets: [Global Cost of Living](https://www.kaggle.com/datasets/mvieira101/global-cost-of-living), [Large Dataset of Geotagged Images](https://www.kaggle.com/datasets/habedi/large-dataset-of-geotagged-images), [World Continents, Countries, and Cities](https://www.back4app.com/database/back4app/list-of-all-continents-countries-cities), [Daily Temperatures in Major Cities](https://www.kaggle.com/datasets/sudalairajkumar/daily-temperature-of-major-cities), and generated user data
+=======
+
+>>>>>>> e1efa75 (Create TeamInfo.md)
