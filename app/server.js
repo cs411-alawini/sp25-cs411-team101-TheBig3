@@ -373,7 +373,7 @@ app.get('/getUserFeed', (req, res) => {
         SELECT r.ReviewID, r.Username, r.ReviewText, r.ReviewRating, r.CreatedAt, r.LikeCount
         FROM Reviews r
         JOIN Follows f ON r.Username = f.followeeUsername
-        WHERE f.followerUsername = 'nancy57'
+        WHERE f.followerUsername = 'aaronjones'
 
         UNION
 
@@ -446,6 +446,53 @@ app.get('/favorite-top-spots', async (req, res) => {
   }
 });
 
+app.get('/cities-with-vacationspots', (req, res) => {
+  const query = `
+    SELECT DISTINCT wc.city, wc.lat, wc.lng, wc.population, wc.capital
+    FROM WorldCities wc
+    JOIN VacationSpots vs ON wc.id = vs.CityId
+    WHERE wc.country = 'United States';
+
+  `;
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching cities:', err);
+      return res.status(500).json({ error: 'Database query failed' });
+    }
+
+    res.json({ cities: results });
+  });
+});
+
+app.get('/vacation-spots', async (req, res) => {
+  const city = req.query.city;
+  if (!city) {
+    return res.status(400).json({ error: 'city query-param is required' });
+  }
+
+  const conn = connection.promise();
+
+  try {
+    const [spots] = await conn.query(
+      `
+      SELECT vs.VacationSpotName
+      FROM VacationSpots vs
+      JOIN WorldCities c ON vs.CityId = c.id
+      WHERE c.city = ?
+      `,
+      [city]
+    );
+
+    return res.json({ spots });
+
+  } catch (err) {
+    console.error('vacation-spots query failed:', err);
+    return res.status(500).json({ error: 'Failed to fetch vacation spots' });
+  }
+});
+
+
 app.get('/top-reviews', async (req, res) => {
   const spot = req.query.spot;
   if (!spot) {
@@ -497,6 +544,32 @@ app.get('/top-reviews', async (req, res) => {
     return res.status(500).json({ error: 'Failed to fetch top reviews' });
   }
 });
+
+
+//heatmap query
+app.get('/city-review-counts', async (req, res) => {
+  const conn = connection.promise();
+  try {
+    const [rows] = await conn.query(`
+      SELECT 
+        c.city,
+        c.lat,
+        c.lng,
+        COUNT(vsr.ReviewId) AS review_count
+      FROM VacationSpotReviews vsr
+      JOIN VacationSpots vs ON vsr.VacationSpotName = vs.VacationSpotName
+      JOIN WorldCities c ON vs.CityId = c.city
+      GROUP BY c.id, c.city, c.lat, c.lng;
+    `);
+
+    return res.json({ cities: rows });
+
+  } catch (err) {
+    console.error('Failed to fetch city review counts:', err);
+    return res.status(500).json({ error: 'Failed to fetch city review counts' });
+  }
+});
+
 
 
 

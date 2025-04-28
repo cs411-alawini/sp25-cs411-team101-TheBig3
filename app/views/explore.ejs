@@ -13,7 +13,7 @@
 
 <body>
   <header>
-    <a href = "/" class="title">Odyssey</a>
+    <a href="/" class="title">Odyssey</a>
 
     <div class="right-side">
       <nav class="nav-links">
@@ -33,67 +33,239 @@
   <!-- <section>
     <h1>Map View</h1>
   </section> -->
+  <div style="text-align:center; margin: 10px;">
+    <button id="toggle-view" style="padding: 10px 20px; font-size: 16px;">Switch to Heatmap View</button>
+  </div>
 
+  
   <div class="map-container">
-    <div id = "map"></div>
+    <div id="map"></div>
   </div>
 </body>
 
 <footer class="site-footer">
   <p>CS 411 Database Systems Project — Last updated April 2025</p>
-  <p><a href="https://github.com/cs411-alawini/sp25-cs411-team101-TheBig3" target="_blank">View our GitHub Repository</a></p>
+  <p><a href="https://github.com/cs411-alawini/sp25-cs411-team101-TheBig3" target="_blank">View our GitHub
+      Repository</a></p>
 </footer>
 
 <script>
-        let searchTimeout = null;
+  let searchTimeout = null;
 
 
   document.getElementById("search-input").addEventListener("input", function () {
-  clearTimeout(searchTimeout);
-  const keyword = this.value.trim();
+    clearTimeout(searchTimeout);
+    const keyword = this.value.trim();
 
-  const dropdown = document.getElementById("search-dropdown");
-  dropdown.innerHTML = ''; // clear previous dropdown items
+    const dropdown = document.getElementById("search-dropdown");
+    dropdown.innerHTML = ''; // clear previous dropdown items
 
-  if (!keyword) {
-  dropdown.style.display = 'none';
-  return;
-  }
-
-  searchTimeout = setTimeout(() => {
-  fetch(`/search?keyword=${encodeURIComponent(keyword)}`)
-    .then(response => response.json())
-    .then(data => {
-      const results = data.searchResults;
-      console.log(results)
-
-      if (!results.length) {
-        dropdown.style.display = 'none';
-        return;
-      }
-
-      const itemsHTML = results.map(item => 
-        `<div class="dropdown-item">${item.VacationSpotName}</div>` // or whatever field you want to display
-      ).join('');
-
-      dropdown.innerHTML = itemsHTML;
-      dropdown.style.display = 'block';
-    })
-    .catch(err => {
-      console.error("Failed to perform search:", err);
+    if (!keyword) {
       dropdown.style.display = 'none';
-    });
-  }, 400);
+      return;
+    }
+
+    searchTimeout = setTimeout(() => {
+      fetch(`/search?keyword=${encodeURIComponent(keyword)}`)
+        .then(response => response.json())
+        .then(data => {
+          const results = data.searchResults;
+          console.log(results)
+
+          if (!results.length) {
+            dropdown.style.display = 'none';
+            return;
+          }
+
+          const itemsHTML = results.map(item =>
+            `<div class="dropdown-item">${item.VacationSpotName}</div>` // or whatever field you want to display
+          ).join('');
+
+          dropdown.innerHTML = itemsHTML;
+          dropdown.style.display = 'block';
+        })
+        .catch(err => {
+          console.error("Failed to perform search:", err);
+          dropdown.style.display = 'none';
+        });
+    }, 400);
   });
 
+  mapboxgl.accessToken = 'pk.eyJ1Ijoicmlja3lsaW4xIiwiYSI6ImNtOXlqa2NteTFrdWMya3ByZW5taGw3NjAifQ.PlPUQnzvMMZkKQP1GTPyBQ';
+const map = new mapboxgl.Map({
+  container: 'map',
+  style: 'mapbox://styles/mapbox/streets-v12',
+  center: [-74.5, 40],
+  zoom: 9
+});
 
-    mapboxgl.accessToken = 'pk.eyJ1Ijoicmlja3lsaW4xIiwiYSI6ImNtOXlqa2NteTFrdWMya3ByZW5taGw3NjAifQ.PlPUQnzvMMZkKQP1GTPyBQ';
-      const map = new mapboxgl.Map({
-        container: 'map', // container ID
-        style: 'mapbox://styles/mapbox/streets-v12', // style URL
-        center: [-74.5, 40], // starting position [lng, lat]
-        zoom: 9, // starting zoom
+let isHeatmap = false; // to track which view is active
+let normalMarkers = []; // store markers
+
+map.on('load', async () => {
+
+  // Fetch the normal marker data
+  const res = await fetch('/cities-with-vacationspots');
+  const data = await res.json();
+  const cities = data.cities;
+
+  cities.forEach(city => {
+    if (city.lat && city.lng) {
+      const marker = new mapboxgl.Marker()
+        .setLngLat([parseFloat(city.lng), parseFloat(city.lat)])
+        .addTo(map);
+
+      normalMarkers.push(marker);
+
+      marker.getElement().addEventListener('click', async () => {
+        let popupHtml = `
+          <div style="font-family: 'Inter', sans-serif; min-width: 250px;">
+            <h3>${city.city}</h3>
+            <p><strong>Longitude:</strong> ${city.lng}</p>
+            <p><strong>Latitude:</strong> ${city.lat}</p>
+            <p><strong>Population:</strong> ${city.population ? Number(city.population).toLocaleString() : 'Unknown'}</p>
+            <p><strong>Capital:</strong> ${city.capital ? city.capital : 'N/A'}</p>
+            <h4>Top Vacation Spots:</h4>
+        `;
+
+        try {
+          const spotsRes = await fetch(`/vacation-spots?city=${encodeURIComponent(city.city)}`);
+          const spotsData = await spotsRes.json();
+
+          if (spotsData.spots && spotsData.spots.length > 0) {
+            for (const spotObj of spotsData.spots) {
+              const spotName = spotObj.VacationSpotName;
+              popupHtml += `<h5>🏖️ ${spotName}</h5>`;
+
+              try {
+                const reviewsRes = await fetch(`/top-reviews?spot=${encodeURIComponent(spotName)}`);
+                const reviewsData = await reviewsRes.json();
+
+                if (reviewsData.reviews && reviewsData.reviews.length > 0) {
+                  reviewsData.reviews.forEach(review => {
+                    popupHtml += `
+                      <div style="margin-left:8px; margin-bottom:4px;">
+                        <p><strong>${review.Username}</strong>: ${review.ReviewRating}⭐</p>
+                        <p>"${review.ReviewText.substring(0, 80)}..."</p>
+                      </div>
+                    `;
+                  });
+                } else {
+                  popupHtml += `<p>No top reviews available.</p>`;
+                }
+              } catch (reviewErr) {
+                console.error(`Failed to load top reviews for ${spotName}`, reviewErr);
+                popupHtml += `<p>Failed to load reviews.</p>`;
+              }
+            }
+          } else {
+            popupHtml += `<p>No vacation spots found for this city.</p>`;
+          }
+        } catch (err) {
+          console.error('Failed to fetch vacation spots:', err);
+          popupHtml += `<p>Failed to load vacation spots.</p>`;
+        }
+
+        popupHtml += `</div>`;
+
+        const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(popupHtml);
+        marker.setPopup(popup);
+        popup.addTo(map);
       });
+    }
+  });
+
+  // Fetch heatmap data
+  const heatRes = await fetch('/city-review-counts');
+  const heatData = await heatRes.json();
+  const heatGeoJson = {
+    type: 'FeatureCollection',
+    features: heatData.cities.map(city => ({
+      type: 'Feature',
+      properties: {
+        review_count: city.review_count
+      },
+      geometry: {
+        type: 'Point',
+        coordinates: [parseFloat(city.lng), parseFloat(city.lat)]
+      }
+    }))
+  };
+
+  // Add heatmap source and layer but keep it invisible initially
+  map.addSource('city-heatmap', {
+    type: 'geojson',
+    data: heatGeoJson
+  });
+
+  map.addLayer({
+    id: 'heatmap-layer',
+    type: 'heatmap',
+    source: 'city-heatmap',
+    layout: { visibility: 'none' },
+    maxzoom: 9,
+    paint: {
+      'heatmap-weight': [
+        'interpolate',
+        ['linear'],
+        ['get', 'review_count'],
+        0, 0,
+        10, 1
+      ],
+      'heatmap-intensity': [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        0, 1,
+        9, 3
+      ],
+      'heatmap-color': [
+        'interpolate',
+        ['linear'],
+        ['heatmap-density'],
+        0, 'rgba(33,102,172,0)',
+        0.2, 'rgb(103,169,207)',
+        0.4, 'rgb(209,229,240)',
+        0.6, 'rgb(253,219,199)',
+        0.8, 'rgb(239,138,98)',
+        1, 'rgb(178,24,43)'
+      ],
+      'heatmap-radius': [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        0, 2,
+        9, 20
+      ],
+      'heatmap-opacity': [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        7, 1,
+        9, 0
+      ]
+    }
+  });
+
+  // Button click to toggle
+  document.getElementById('toggle-view').addEventListener('click', () => {
+    if (isHeatmap) {
+      // Switch back to normal markers
+      map.setLayoutProperty('heatmap-layer', 'visibility', 'none');
+      normalMarkers.forEach(marker => marker.getElement().style.display = 'block');
+      document.getElementById('toggle-view').innerText = 'Switch to Heatmap View';
+    } else {
+      // Switch to heatmap
+      map.setLayoutProperty('heatmap-layer', 'visibility', 'visible');
+      normalMarkers.forEach(marker => marker.getElement().style.display = 'none');
+      document.getElementById('toggle-view').innerText = 'Switch to Normal Marker View';
+    }
+    isHeatmap = !isHeatmap;
+  });
+});
+
+
+
 
 </script>
 

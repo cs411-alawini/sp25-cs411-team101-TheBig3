@@ -5,12 +5,18 @@
   <meta charset="UTF-8">
   <title><%= title %></title>
   <link rel="stylesheet" href="/stylesheets/style.css">
+  <style>
+    .liked-button {
+      background-color: #ffcccc;
+      color: #cc0000;
+      cursor: not-allowed;
+    }
+  </style>
 </head>
 
 <body>
   <header>
     <a href="/" class="title">Odyssey</a>
-
     <div class="right-side">
       <nav class="nav-links">
         <a href="/browse">Browse</a>
@@ -18,7 +24,6 @@
         <a href="/log">Log</a>
         <a href="/profile">Profile</a>
       </nav>
-
       <div class="search-bar">
         <input id="search-input" type="text" placeholder="Search vacation spots, cities..." />
         <div id="search-dropdown" class="dropdown"></div>
@@ -28,7 +33,6 @@
 
   <main class="feed-container">
     <h1 class="feed-title">User Feed</h1>
-
     <div id="feed-section">
       <!-- Posts will be injected here -->
     </div>
@@ -40,53 +44,49 @@
   </footer>
 
   <script>
-        let searchTimeout = null;
+    let searchTimeout = null;
 
+    document.getElementById("search-input").addEventListener("input", function () {
+      clearTimeout(searchTimeout);
+      const keyword = this.value.trim();
+      const dropdown = document.getElementById("search-dropdown");
+      dropdown.innerHTML = '';
 
-document.getElementById("search-input").addEventListener("input", function () {
-clearTimeout(searchTimeout);
-const keyword = this.value.trim();
+      if (!keyword) {
+        dropdown.style.display = 'none';
+        return;
+      }
 
-const dropdown = document.getElementById("search-dropdown");
-dropdown.innerHTML = ''; // clear previous dropdown items
+      searchTimeout = setTimeout(() => {
+        fetch(`/search?keyword=${encodeURIComponent(keyword)}`)
+          .then(response => response.json())
+          .then(data => {
+            const results = data.searchResults;
+            console.log(results)
 
-if (!keyword) {
-dropdown.style.display = 'none';
-return;
-}
+            if (!results.length) {
+              dropdown.style.display = 'none';
+              return;
+            }
 
-searchTimeout = setTimeout(() => {
-fetch(`/search?keyword=${encodeURIComponent(keyword)}`)
-  .then(response => response.json())
-  .then(data => {
-    const results = data.searchResults;
-    console.log(results)
+            const itemsHTML = results.map(item =>
+              `<div class="dropdown-item">${item.VacationSpotName}</div>`
+            ).join('');
 
-    if (!results.length) {
-      dropdown.style.display = 'none';
-      return;
-    }
-
-    const itemsHTML = results.map(item => 
-      `<div class="dropdown-item">${item.VacationSpotName}</div>` // or whatever field you want to display
-    ).join('');
-
-    dropdown.innerHTML = itemsHTML;
-    dropdown.style.display = 'block';
-  })
-  .catch(err => {
-    console.error("Failed to perform search:", err);
-    dropdown.style.display = 'none';
-  });
-}, 400);
-});
-
+            dropdown.innerHTML = itemsHTML;
+            dropdown.style.display = 'block';
+          })
+          .catch(err => {
+            console.error("Failed to perform search:", err);
+            dropdown.style.display = 'none';
+          });
+      }, 400);
+    });
 
     async function loadFeed() {
       try {
         const response = await fetch('/getUserFeed');
         const data = await response.json();
-
         console.log('Feed data:', data);
 
         const feed = data.feed;
@@ -96,10 +96,8 @@ fetch(`/search?keyword=${encodeURIComponent(keyword)}`)
           return;
         }
 
-        // Only render the first post
-        const post = feed[0];
-
-        const postHTML = `
+        // Build HTML for all posts
+        const postsHTML = feed.map(post => `
           <div class="post-card">
             <div class="post-header">
               <img src="https://i.pinimg.com/736x/e5/b9/81/e5b98110fcd62d6ebe0e636262170175.jpg" alt="Profile" class="post-profile-pic">
@@ -111,20 +109,15 @@ fetch(`/search?keyword=${encodeURIComponent(keyword)}`)
 
             <p class="post-caption">${post.ReviewText}</p>
 
-            <!-- Optionally attach an image if you want -->
-            <!--<img src="..." alt="Attached Image" class="post-image">-->
-
             <div class="post-footer">
-  <button onclick="likePost(${post.ReviewID})" class="like-button">❤️ <span id="like-count">${post.LikeCount}</span> likes</button>
-
-</button>
-
-</div>
-
+              <button onclick="likePost(${post.ReviewID})" class="like-button" id="like-button-${post.ReviewID}">
+                ❤️ <span id="like-count-${post.ReviewID}">${post.LikeCount}</span> likes
+              </button>
+            </div>
           </div>
-        `;
+        `).join('');
 
-        document.getElementById('feed-section').innerHTML = postHTML;
+        document.getElementById('feed-section').innerHTML = postsHTML;
 
       } catch (error) {
         console.error('Error loading feed:', error);
@@ -135,30 +128,38 @@ fetch(`/search?keyword=${encodeURIComponent(keyword)}`)
     window.onload = loadFeed;
 
     async function likePost(reviewId) {
-    try {
+  const likeButton = document.getElementById(`like-button-${reviewId}`);
+
+  // Prevent double-clicks locally too
+  if (!likeButton || likeButton.disabled) return;
+
+  try {
     const response = await fetch('/likeReview', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ReviewID: reviewId }),
     });
 
-
     if (!response.ok) {
       throw new Error('Failed to like post');
     }
 
     const data = await response.json();
+    const updatedLikeCount = data.updatedLikeCount;
 
-    // Update the like count on the page
-    document.getElementById('like-count').innerText = data.updatedLikeCount;
-    const likeButton = document.getElementById('like-button');
+    // Update like count visually
+    document.getElementById(`like-count-${reviewId}`).innerText = updatedLikeCount;
+
+    // Disable button + visually mark it liked + update label
     likeButton.disabled = true;
+    likeButton.classList.add('liked-button');
+    likeButton.innerHTML = `❤️ Liked · <span id="like-count-${reviewId}">${updatedLikeCount}</span> likes`;
+
   } catch (error) {
     console.error('Error liking post:', error);
     alert('Failed to like the post.');
   }
 }
-
 
   </script>
 </body>
