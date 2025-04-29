@@ -21,7 +21,7 @@
 | ----------- | ---------------------- |
 |  Title      |       Odyssey          |
 | System URL  |      link_to_system    |
-| Video Link  |      link_to_video     |
+| Video Link  |      https://mediaspace.illinois.edu/media/t/1_x5alq23k    |
 
 ## Project Summary
 
