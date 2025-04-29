@@ -42,38 +42,36 @@
     <p>CS 411 Database Systems Project — Last updated April 2025</p>
     <p><a href="https://github.com/cs411-alawini/sp25-cs411-team101-TheBig3" target="_blank">View our GitHub Repository</a></p>
   </footer>
-
   <script>
     let searchTimeout = null;
-
+  
     document.getElementById("search-input").addEventListener("input", function () {
       clearTimeout(searchTimeout);
       const keyword = this.value.trim();
       const dropdown = document.getElementById("search-dropdown");
       dropdown.innerHTML = '';
-
+  
       if (!keyword) {
         dropdown.style.display = 'none';
         return;
       }
-
+  
       searchTimeout = setTimeout(() => {
         fetch(`/search?keyword=${encodeURIComponent(keyword)}`)
           .then(response => response.json())
           .then(data => {
             const results = data.searchResults;
             console.log(results)
-
+  
             if (!results.length) {
               dropdown.style.display = 'none';
               return;
             }
-
+  
             const itemsHTML = results.map(item =>
-  `<div class="dropdown-item" onclick="redirectToExplore('${encodeURIComponent(item.VacationSpotName)}')">${item.VacationSpotName}</div>`
-).join('');
-
-
+              `<div class="dropdown-item" onclick="redirectToExplore('${encodeURIComponent(item.VacationSpotName)}')">${item.VacationSpotName}</div>`
+            ).join('');
+  
             dropdown.innerHTML = itemsHTML;
             dropdown.style.display = 'block';
           })
@@ -83,92 +81,95 @@
           });
       }, 400);
     });
-
+  
     function redirectToExplore(vacationSpotName) {
-  // Redirect to /explore?spot=VacationSpotName
-  window.location.href = `/explore?spot=${vacationSpotName}`;
-}
-
-
+      window.location.href = `/explore?spot=${vacationSpotName}`;
+    }
+  
     async function loadFeed() {
-      try {
-        const response = await fetch('/getUserFeed');
-        const data = await response.json();
-        console.log('Feed data:', data);
-
-        const feed = data.feed;
-
-        if (!feed || feed.length === 0) {
-          document.getElementById('feed-section').innerHTML = '<p>No posts available yet.</p>';
-          return;
-        }
-
-        // Build HTML for all posts
-        const postsHTML = feed.map(post => `
-          <div class="post-card">
-            <div class="post-header">
-              <img src="https://i.pinimg.com/736x/e5/b9/81/e5b98110fcd62d6ebe0e636262170175.jpg" alt="Profile" class="post-profile-pic">
-              <div>
-                <a href="/profile" class="post-username">${post.Username}</a>
-                <p class="post-time">${new Date(post.CreatedAt).toLocaleString()}</p>
-              </div>
-            </div>
-
-            <p class="post-caption">${post.ReviewText}</p>
-
-            <div class="post-footer">
-              <button onclick="likePost(${post.ReviewID})" class="like-button" id="like-button-${post.ReviewID}">
-                ❤️ <span id="like-count-${post.ReviewID}">${post.LikeCount}</span> likes
-              </button>
-            </div>
-          </div>
-        `).join('');
-
-        document.getElementById('feed-section').innerHTML = postsHTML;
-
-      } catch (error) {
-        console.error('Error loading feed:', error);
-        document.getElementById('feed-section').innerHTML = '<p>Failed to load feed.</p>';
-      }
-    }
-
-    window.onload = loadFeed;
-
-    async function likePost(reviewId) {
-  const likeButton = document.getElementById(`like-button-${reviewId}`);
-
-  // Prevent double-clicks locally too
-  if (!likeButton || likeButton.disabled) return;
-
   try {
-    const response = await fetch('/likeReview', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ReviewID: reviewId }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to like post');
+    const params = new URLSearchParams(window.location.search);
+    const username = "aaronjones"; 
+  
+    if (!username) {
+      document.getElementById('feed-section').innerHTML = '<p>No username provided in URL.</p>';
+      return;
     }
-
+  
+    const response = await fetch(`/review-feed/${encodeURIComponent(username)}`);
     const data = await response.json();
-    const updatedLikeCount = data.updatedLikeCount;
+    console.log('Feed data:', data);
+  
+    const feed = data.spots; 
+  
+    if (!feed || feed.length === 0) {
+      document.getElementById('feed-section').innerHTML = '<p>No posts available yet.</p>';
+      return;
+    }
+  
+    const postsHTML = feed.map(post => `
+      <div class="post-card">
+        <div class="post-header">
+          <img src="https://i.pinimg.com/736x/e5/b9/81/e5b98110fcd62d6ebe0e636262170175.jpg" alt="Profile" class="post-profile-pic">
+          <div>
+            <a href="/profile" class="post-username">${post.Username}</a>
+            <p class="post-time">${new Date(post.CreatedAt).toLocaleString()}</p>
+          </div>
+        </div>
 
-    // Update like count visually
-    document.getElementById(`like-count-${reviewId}`).innerText = updatedLikeCount;
+        <p class="post-caption">${post.ReviewText}</p>
 
-    // Disable button + visually mark it liked + update label
-    likeButton.disabled = true;
-    likeButton.classList.add('liked-button');
-    likeButton.innerHTML = `❤️ Liked · <span id="like-count-${reviewId}">${updatedLikeCount}</span> likes`;
-
+        <div class="post-footer">
+          <button onclick="likePost(${post.ReviewID})" class="like-button" id="like-button-${post.ReviewID}">
+            ❤️ <span id="like-count-${post.ReviewID}">${post.LikeCount}</span> likes
+          </button>
+        </div>
+      </div>
+    `).join('');
+  
+    document.getElementById('feed-section').innerHTML = postsHTML;
+  
   } catch (error) {
-    console.error('Error liking post:', error);
-    alert('Failed to like the post.');
+    console.error('Error loading feed:', error);
+    document.getElementById('feed-section').innerHTML = '<p>Failed to load feed.</p>';
   }
 }
 
+  
+    window.onload = loadFeed;
+  
+    async function likePost(reviewId) {
+      const likeButton = document.getElementById(`like-button-${reviewId}`);
+  
+      if (!likeButton || likeButton.disabled) return;
+  
+      try {
+        const response = await fetch('/likeReview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ReviewID: reviewId }),
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to like post');
+        }
+  
+        const data = await response.json();
+        const updatedLikeCount = data.updatedLikeCount;
+  
+        document.getElementById(`like-count-${reviewId}`).innerText = updatedLikeCount;
+  
+        likeButton.disabled = true;
+        likeButton.classList.add('liked-button');
+        likeButton.innerHTML = `❤️ Liked · <span id="like-count-${reviewId}">${updatedLikeCount}</span> likes`;
+  
+      } catch (error) {
+        console.error('Error liking post:', error);
+        alert('Failed to like the post.');
+      }
+    }
   </script>
+  
 </body>
 
 </html>

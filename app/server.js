@@ -434,7 +434,7 @@ app.get('/getUserFeed', (req, res) => {
   });
 });
 
-
+//TRANSACTION 1
 app.get('/favorite-top-spots', async (req, res) => {
   const username = req.query.username;
   if (!username) {
@@ -524,7 +524,7 @@ app.get('/vacation-spots', async (req, res) => {
   }
 });
 
-
+//TRANSACTION 2
 app.get('/top-reviews', async (req, res) => {
   const spot = req.query.spot;
   if (!spot) {
@@ -576,6 +576,38 @@ app.get('/top-reviews', async (req, res) => {
     return res.status(500).json({ error: 'Failed to fetch top reviews' });
   }
 });
+
+
+//STORED PROCEDURES 
+
+// GET recent reviews for review feed
+app.get('/review-feed/:username', async (req, res) => {
+  const { username } = req.params;
+  try {
+    const [resultSets] = await connection.promise().query('CALL GetReviewFeed(?)', [username]);
+    const reviewFeed = resultSets[0];
+    res.json({ spots: reviewFeed }); 
+  } catch (error) {
+    console.error('Error fetching review feed:', error);
+    res.status(500).json({ message: 'Error fetching review feed' });
+  }
+});
+
+
+// GET top vacation spots for a city
+app.get('/vacation-spots/:city', async (req, res) => {
+  const { city } = req.params;
+  try {
+    const [resultSets] = await connection.promise().query('CALL GetVacationSpotReviewsByCity(?)', [city]);
+    const vacationSpots = resultSets[0];
+    res.json({ spots: vacationSpots });
+  } catch (error) {
+    console.error('Error fetching vacation spots:', error);
+    res.status(500).json({ message: 'Error fetching vacation spots' });
+  }
+});
+
+
 
 
 //heatmap query
